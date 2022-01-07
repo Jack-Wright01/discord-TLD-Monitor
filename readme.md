@@ -1,4 +1,4 @@
-#Discord Top Level Domain (TLD) Monitor
+# Discord Top Level Domain (TLD) Monitor
 
 In efforts to counteract bots and compromised accounts linking malicious websites, this python app currently acts as a proof of concept and executes the following:
 
