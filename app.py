@@ -1,6 +1,10 @@
 import discord
 import whitelist
+import os
 from random import randint
+from dotenv import load_dotenv
+
+load_dotenv()
 
 securityLevel = 1 # 1-3, 1 for most secure, 2+ for people feeling brave
 whitelistedTLDs = []
@@ -9,11 +13,9 @@ unexpectedTLDs = []
 def main():
     whitelistedVals = whitelist.get(securityLevel)
     for val in whitelistedVals: whitelistedTLDs.append(val)
-    if (len(whitelistedTLDs) == 0): return log("[CRITICAL] failed to find whitelisted TLDs, abandoning bot startup", status="critical", consoleOnly=True)
+    if (len(whitelistedTLDs) == 0): return log("failed to find whitelisted TLDs, abandoning bot startup", status="critical", consoleOnly=True)
     client = Client()
-    #region CLIENT TOKEN
-    client.run('')
-    #endregion
+    client.run(os.getenv("DISCORDKEY"))
 
 def isUrl(str):
     """Checks http(s):// and . to identify if string is a potential url"""
