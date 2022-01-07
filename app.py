@@ -12,7 +12,7 @@ def main():
     if (len(whitelistedTLDs) == 0): return log("[CRITICAL] failed to find whitelisted TLDs, abandoning bot startup", status="critical", consoleOnly=True)
     client = Client()
     #region CLIENT TOKEN
-    client.run('TOKEN-HERE')
+    client.run('')
     #endregion
 
 def isUrl(str):
@@ -62,6 +62,7 @@ def validTLD(TLD):
         log(f"Dumping url (see obfuscated in console) with TLD of {TLD}")
         return False
     log(f"Top Level Domain not detected in whitelist, dumping url (see console for obfuscatetd URL) with TLD of {TLD}, is this TLD safe?")
+    unexpectedTLDs.append(TLD)
     return False
 
 def log(msg, status="neutral", consoleOnly=False):
