@@ -1,36 +1,86 @@
-TLD = {
-    # Each Top Level Domain (TLD) ranked 1-2 from least likely to be malicious (1) to more likely to contain malicious intent (2), while (3) is reserved for TLD statistically more likely to cause harm
-    # Ranking based on Ionos' [Most popular domain extensions] (https://www.ionos.co.uk/digitalguide/domains/domain-extensions/most-popular-domain-extensions/)
-    ".ac.uk": 1,
-    ".au": 1,
-    ".blog": 1,
-    ".co": 1,
-    ".com": 1,
-    ".de": 1,
-    ".edu": 1,
-    ".fr": 1,
-    "gg": 1,
-    ".gov": 1,
-    ".gov.uk": 1,
-    ".io": 1,
-    ".net": 1,
-    ".org": 1,
-    ".org.uk": 1,
-    ".tech": 1,
-    ".uk": 1,
-    ".us": 1,
+import json
 
-    #TIER 2
-    ".in": 2,
-    ".ir": 2,
-    ".ua": 2,
-    "xyz": 2,
-}
+whitelist = None
 
-def get(restrictionLevel):
-    #Sort through TLDs, if in restriction range add to whitelist to send to app
-    whitelist = []
-    for key in TLD:
-        if (TLD[key] <= restrictionLevel):
-            whitelist.append(key)
+TLD = [
+    # Default trusted TLDs
+    ".ac.uk",
+    ".au",
+    ".blog",
+    ".co",
+    ".com",
+    ".de",
+    ".edu",
+    ".fr",
+    ".gg",
+    ".gov",
+    ".gov.uk",
+    ".io",
+    ".net",
+    ".org",
+    ".org.uk",
+    ".tech",
+    ".uk",
+    ".us",
+]
+
+def clean(val):
+    """Converts TLD into standard format with period at the front and all lowercase"""
+    val = val.lower()
+    if (val[:1] != "."):
+        val = "." + val
+    return val
+
+def get():
+    """Sort through TLDs, if in restriction range add to whitelist to send to app"""
+    try:
+        with open("whitelist.json") as f:
+            whitelist = json.load(f)
+            TLD = whitelist
+    except:
+        whitelist = create()
+    
     return whitelist
+
+def create():
+    """Create whitelist JSON file with saved approved words"""
+    save()
+
+def save():
+    """Update whitelist to JSON file"""
+    with open('whitelist.json', 'w') as jsonFile:
+        json.dump(TLD, jsonFile)
+    return TLD
+
+def add(val):
+    """Add TLD to JSON"""
+    val = clean(val)
+
+    if (val in TLD):
+        return None, f"`{val}` is already in the whitelist", "critical"
+
+    try:
+        TLD.append(val)
+        whitelist = save()
+        return whitelist, f"`{val}` added successfully", "success"
+    except:
+        return None, f"failed to add `{val}`", "critical"
+    
+    
+
+def remove(val):
+    """Remove TLD to JSON"""
+    val = clean(val)
+
+    try:
+        print(1)
+        if (val in TLD):
+            print(2)
+            TLD.remove(val)
+            whitelist = save()
+            return whitelist, f"`{val}` removed successfully", "success"
+        else:
+            print(123)
+            return None, f"`{val}` does not exist", "critical"
+    except:
+        return None, f"failed to remove `{val}`", "critical"
