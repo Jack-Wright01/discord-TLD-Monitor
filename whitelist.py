@@ -73,14 +73,11 @@ def remove(val):
     val = clean(val)
 
     try:
-        print(1)
         if (val in TLD):
-            print(2)
             TLD.remove(val)
             whitelist = save()
             return whitelist, f"`{val}` removed successfully", "success"
         else:
-            print(123)
             return None, f"`{val}` does not exist", "critical"
     except:
         return None, f"failed to remove `{val}`", "critical"

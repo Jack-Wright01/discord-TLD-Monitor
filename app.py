@@ -8,7 +8,7 @@ from discord.ext import commands
 
 load_dotenv()
 
-STATUS_CHANNEL = 929060407367311441 #Channel ID of channel where the bot will push notifications
+STATUS_CHANNEL = 929794707905728522 #Channel ID of channel where the bot will push notifications
 
 
 unexpectedTLDs = []
@@ -26,7 +26,6 @@ def main():
 def delMessage(state):
     global DEL_MESSAGES
     DEL_MESSAGES = state
-    print("---", DEL_MESSAGES)
 
 async def log(msg, status="neutral", consoleOnly=False, discordOnly=False, author="USER NOT FOUND", timestamp=None, footer="", title="", defaultChannel=None):
     """Logs update to console and (if provided) a discord channel, ideally for moderators to overlook without needing to view the console"""
@@ -79,8 +78,15 @@ def userAuthorised(author):
     Be cautious in using this as a compromised accoount with high roles will not be checked for suspicious links"""
     if (author == bot.user):
         return True
+    if (author.bot):
+        return True
+    #TODO-Complete
+    return False
 
-    #Unauthorised
+def validChannel(channel):
+    """Stops the bot accepting commands from other channels other than the status channel"""
+    if (channel.id == STATUS_CHANNEL): 
+        return True
     return False
 
 def getTLD(url):
@@ -148,6 +154,7 @@ async def on_message(message):
 
 @bot.command()
 async def add(ctx, arg):
+    if (validChannel(ctx.message.channel) == False): return
     newWhitelist, response, status = whitelist.add(arg)
     if (newWhitelist != None):
         whitelistedVals = newWhitelist
@@ -155,6 +162,7 @@ async def add(ctx, arg):
 
 @bot.command()
 async def remove(ctx, arg):
+    if (validChannel(ctx.message.channel) == False): return
     newWhitelist, response, status = whitelist.remove(arg)
     if (newWhitelist != None):
         whitelistedVals = newWhitelist
@@ -162,6 +170,7 @@ async def remove(ctx, arg):
 
 @bot.command(aliases=["whitelist"]) #Damn pesky double variable naming >:(
 async def approved(ctx):
+    if (validChannel(ctx.message.channel) == False): return
     body = "Approved Top Level Domains in this server\n\n"
     for item in whitelistedVals:
         body = body + f"`{item}`\n"
@@ -169,6 +178,7 @@ async def approved(ctx):
 
 @bot.command()
 async def help(ctx, arg=None):
+    if (validChannel(ctx.message.channel) == False): return
     try:
         arg = arg.lower()
         if (arg == "add"):
@@ -182,12 +192,13 @@ async def help(ctx, arg=None):
         elif (arg == "action"):
             await log(f"Set the bots state when it detects an unaproved TLD \n\n **Parameters** \n `monitor` - Detects and records TLDs to the console and/or status channel to be approved, does **not** delete any messages [DEFAULT]\n\n`remove` - Deletes any messages containing a URL with an aunapproved TLD\n\n **Example Usage**\n`{prefix}{arg} monitor`", title=f"{prefix}{arg}",author=ctx.message.author ,timestamp=ctx.message.created_at, discordOnly=True)
         else:
-            await log(f"In efforts to counteract bots and compromised accounts linking malicious websites, this bot monitors messages and removes any message containing a URL with an unapproved TLD. \n\n The source code is still in development and available on [**Github**](https://github.com/Jack-Wright01/discord-TLD-Monitor)\n\n**Commands**\n\n`{prefix}whitelist` - Recieve a list of approved TLDs on the server\n`{prefix}add` - Add an approved TLD to to the whitelist\n`{prefix}remove` - Remove a TLD from the whitetlist\n `{prefix}action` - Set the bots state when it detects an unaproved TLD\n\nFor information on each command's parameters, use `{prefix}help <CMD_NAME>", title="Top Level Domain Monitor", discordOnly=True)
+            await log(f"In efforts to counteract bots and compromised accounts linking malicious websites, this bot monitors messages and removes any message containing a URL with an unapproved TLD. \n\n The source code is still in development and available on [**Github**](https://github.com/Jack-Wright01/discord-TLD-Monitor)\n\n**Commands**\n\n`{prefix}whitelist` - Recieve a list of approved TLDs on the server\n`{prefix}add` - Add an approved TLD to to the whitelist\n`{prefix}remove` - Remove a TLD from the whitetlist\n `{prefix}action` - Set the bots state when it detects an unaproved TLD\n\nFor information on each command's parameters, use `{prefix}help <CMD_NAME>", title="Top Level Domain Monitor", discordOnly=True, author=ctx.message.author ,timestamp=ctx.message.created_at)
     except:
-        await log(f"In efforts to counteract bots and compromised accounts linking malicious websites, this bot monitors messages and removes any message containing a URL with an unapproved TLD. \n\n The source code is still in development and available on [**Github**](https://github.com/Jack-Wright01/discord-TLD-Monitor)\n\n**Commands**\n\n`{prefix}whitelist` - Recieve a list of approved TLDs on the server\n`{prefix}add` - Add an approved TLD to to the whitelist\n`{prefix}remove` - Remove a TLD from the whitetlist\n `{prefix}action` - Set the bots state when it detects an unaproved TLD\n\nFor information on each command's parameters, use `{prefix}help <CMD_NAME>", title="Top Level Domain Monitor", discordOnly=True)
+        await log(f"In efforts to counteract bots and compromised accounts linking malicious websites, this bot monitors messages and removes any message containing a URL with an unapproved TLD. \n\n The source code is still in development and available on [**Github**](https://github.com/Jack-Wright01/discord-TLD-Monitor)\n\n**Commands**\n\n`{prefix}whitelist` - Recieve a list of approved TLDs on the server\n`{prefix}add` - Add an approved TLD to to the whitelist\n`{prefix}remove` - Remove a TLD from the whitetlist\n `{prefix}action` - Set the bots state when it detects an unaproved TLD\n\nFor information on each command's parameters, use `{prefix}help <CMD_NAME>", title="Top Level Domain Monitor", discordOnly=True,author=ctx.message.author ,timestamp=ctx.message.created_at,)
 
 @bot.command()
 async def action(ctx, arg=None):
+    if (validChannel(ctx.message.channel) == False): return
     if (arg == None): await log(f"No argument for `{prefix}action` given", footer=f"See `{prefix}help action` for more info", status="critical")
     arg = arg.lower()
     
