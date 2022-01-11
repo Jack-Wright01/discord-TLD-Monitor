@@ -65,8 +65,6 @@ def add(val):
         return whitelist, f"`{val}` added successfully", "success"
     except:
         return None, f"failed to add `{val}`", "critical"
-    
-    
 
 def remove(val):
     """Remove TLD to JSON"""

@@ -1,33 +1,51 @@
 import discord
-from discord.ext.commands.errors import NotOwner
 import whitelist
+import blacklist
 import os
 from random import randint
 from dotenv import load_dotenv
-from discord.ext import commands
+from discord.ext import commands, tasks
+from random import randint
+import datetime, time
 
 load_dotenv()
+prefix = os.getenv("PREFIX")
 
-STATUS_CHANNEL = 929794707905728522 #Channel ID of channel where the bot will push notifications
+DEFAULT_FOOTER = f"Developed by Jack!#2914 | {prefix}help"
+STATUS_CHANNEL = 930558467956158484 #Channel ID of channel where the bot will push notifications
 
-
+# App variables only
+startupMessage = True
+blacklistList = None
+whitelistedVals = None
 unexpectedTLDs = []
 
 
-prefix = os.getenv("PREFIX")
 bot = commands.Bot(command_prefix=prefix, help_command=None)
+startUptime = datetime.datetime.now()
 
 def main():
+    bot.run(os.getenv("DISCORDKEY"))
+    
+async def getLists():
+    """Gets whitelist/blacklist and reports if unavailable"""
     global whitelistedVals
     whitelistedVals = whitelist.get()
-    #if (whitelistedVals == None): return await log("failed to find whitelisted TLDs, abandoning bot startup", status="critical", consoleOnly=True)
-    #client = Client()
+
+    global blacklistList
+    blacklistList, msg, status = blacklist.get()
+    await log(msg, status=status)
+
+    if (whitelistedVals == None):
+        await log("Failed to find whitelisted TLDs, **strongly** consider looking into...", status="critical")
+    else:
+        await log(f":white_check_mark: Whitelisted TLD library active", status="success")
 
 def delMessage(state):
     global DEL_MESSAGES
     DEL_MESSAGES = state
 
-async def log(msg, status="neutral", consoleOnly=False, discordOnly=False, author="USER NOT FOUND", timestamp=None, footer="", title="", defaultChannel=None):
+async def log(msg, status="neutral", consoleOnly=False, discordOnly=False, author=None, timestamp=None, footer="", title="", defaultChannel=None):
     """Logs update to console and (if provided) a discord channel, ideally for moderators to overlook without needing to view the console"""
     if (discordOnly == False):
         print(f"{status} - {msg}")
@@ -43,6 +61,8 @@ async def log(msg, status="neutral", consoleOnly=False, discordOnly=False, autho
                 embed=discord.Embed(title=title, description=msg, color=discord.Color.blue())
             if (footer != ""):
                 embed.set_footer(text=footer)
+            elif (footer == "" and author == None):
+                embed.set_footer(text=DEFAULT_FOOTER)
             else:
                 embed.set_footer(text=f"Posted by {author} on {timestamp} UTC")
 
@@ -119,24 +139,30 @@ async def validTLD(TLD, author, timestamp):
 @bot.event
 async def on_ready():
     print(f"{bot.user} Online")
-    attempts = 0
-    while (attempts < 3):
-        try:
-            channel = bot.get_channel(STATUS_CHANNEL)
-            await log(f":white_check_mark:  Online \n\n:x: Auto delete non-whitelisted TLDs is **DISABLED** \n\n:globe_with_meridians: {len(whitelistedVals)} Approved TLDs in this server\n\n:page_facing_up: Use `{prefix}help` for a list of commands\n\n", status="neutral", title="Top Level Domain Monitor", footer="Developed by Jack!#2914", discordOnly=True)
-            return
-        except:
-            attempts += 1
-    if (attempts < 3):
-        await log("Failed to connect to Discord channel, push notificattioons disabled",status="critical" ,consoleOnly=True)
+
+    channel = bot.get_channel(STATUS_CHANNEL)
+    await getLists()
+    await log(f":white_check_mark:  Online \n\n:globe_with_meridians: {len(whitelistedVals)} Approved TLDs in this server\n\n :no_entry_sign: Blocked URLs: {blacklist.getSize()} \n\n:page_facing_up: Use `{prefix}help` for a list of commands\n\n", status="neutral", title="Top Level Domain Monitor", footer=DEFAULT_FOOTER, discordOnly=True)
+    
 
 @bot.event
 async def on_message(message):
+    
+    #Detect TLDs process start
+    if (whitelistedVals == None): return
     if (userAuthorised(message.author) == True): return
     splice = message.content.split(" ")
     for url in splice:
         url = url.lower()
         if (isUrl(url) == True):
+
+            if (blacklistList):
+                state = blacklist.isBlacklisted(url)
+                if (state == True):
+                    await message.delete()
+                    return await log(f"Sent By: {message.author}\nIn Channel: #{message.channel}", title="Blacklisted URL Removed", status="critical")
+                    
+
             TLD = getTLD(url)   
             if (TLD != None):
                 if (not await validTLD(TLD, message.author, message.created_at)):
@@ -185,7 +211,7 @@ async def help(ctx, arg=None):
             await log(f"Add an approved TLD to to the whitelist \n\n **Example Usage**\n`{prefix}{arg} (.)org.uk`\n\nThe period at the start of the TLD is not required", title=f"{prefix}{arg}",author=ctx.message.author ,timestamp=ctx.message.created_at, discordOnly=True)
         elif (arg == "remove"):
             await log(f"Remove a TLD from the whitetlist \n\n **Example Usage**\n`{prefix}{arg} (.)org.uk`\n\nThe period at the start of the TLD is not required", title=f"{prefix}{arg}",author=ctx.message.author ,timestamp=ctx.message.created_at, discordOnly=True)
-        elif (arg == "help"):
+        elif (arg == "help"):           
             await log(f"Get information about the bot and how to use the coommands \n\n **Example Usage**\n`{prefix}{arg}`", title=f"{prefix}{arg}",author=ctx.message.author ,timestamp=ctx.message.created_at, discordOnly=True)
         elif (arg == "whitelist"):
             await log(f"View a list of approved Top Level Domains allowed in the server \n\n **Example Usage**\n`{prefix}{arg}`", title=f"{prefix}{arg}",author=ctx.message.author ,timestamp=ctx.message.created_at, discordOnly=True)
@@ -212,23 +238,7 @@ async def action(ctx, arg=None):
     else:
         await log(f"`{arg}` is not a valid parameter", footer=f"See `{prefix}help action` for more info", status="critical")
 
-
-
-
-
-
-@add.error
-async def add_error(ctx, error):
-    if isinstance(error, commands.BadArgument):
-        await ctx.send('Invalid argument(s)')
-
-@remove.error
-async def remove_error(ctx, error):
-    if isinstance(error, commands.BadArgument):
-        await ctx.send('Invalid argument(s)')
-
-
 if (__name__ == "__main__"):
     main()
-    bot.run(os.getenv("DISCORDKEY"))
+    
 
