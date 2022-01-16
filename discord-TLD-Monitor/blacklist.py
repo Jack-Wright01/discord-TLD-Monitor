@@ -10,6 +10,6 @@ def get():
     except:
         return False
 
-def isBlacklisted(val): return val in blacklist
+def isBlacklisted(val): return val.lower() in blacklist
 
 def getSize(): return len(blacklist)

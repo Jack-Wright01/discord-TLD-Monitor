@@ -157,7 +157,7 @@ async def updateBlacklist():
     """Updates blacklisted URL list, fetched from github page with updated json file (see blacklist.py)"""
     if (updateBlacklist.current_loop == 0): return # Skip first search, blacklist will have already been fetched with bot startup
     blacklistLen = blacklist.getSize()
-    message = await log.discord(body=":hourglass: Updating blacklist...", channel=bot.get_channel(config.DEFAULT_CHANNEL))
+    message = await log.discord(body=":hourglass: Updating blacklist...", channel=bot.get_channel(channel))
 
     if (blacklist.get()):
         delta = blacklist.getSize() - blacklistLen
