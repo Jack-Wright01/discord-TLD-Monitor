@@ -133,11 +133,11 @@ async def help(ctx, arg=None):
     """Handles help info in discord channel"""
 
     helpText= {
-        "default": f"In efforts to counteract bots and compromised accounts linking malicious websites, this bot monitors messages and removes any message containing a URL with an unapproved TLD. \n\n The source code is still in development and available on [**Github**](https://github.com/Jack-Wright01/discord-TLD-Monitor)\n\n**Commands**\n\n`{config.PREFIX}whitelist` - Recieve a list of approved TLDs on the server\n`{config.PREFIX}add` - Add an approved TLD to to the whitelist\n`{config.PREFIX}remove` - Remove a TLD from the whitetlist\n `{config.PREFIX}action` - Set the bots state when it detects an unaproved TLD\n\nFor information on each command's parameters, use `{config.PREFIX}help <CMD_NAME>`",
+        "default": f"In efforts to counteract bots and compromised accounts linking malicious websites, this bot monitors messages and removes any message containing a URL with an unapproved TLD. \n\n The source code is still in development and available on [**Github**](https://github.com/Jack-Wright01/discord-TLD-Monitor)\n\n**Commands**\n\n`{config.PREFIX}whitelist` - Receive a list of approved TLDs on the server\n`{config.PREFIX}add` - Add an approved TLD to to the whitelist\n`{config.PREFIX}remove` - Remove a TLD from the whitetlist\n `{config.PREFIX}action` - Set the bots state when it detects an unapproved TLD\n\nFor information on each command's parameters, use `{config.PREFIX}help <CMD_NAME>`",
         "add": f"Add an approved TLD to to the whitelist \n\n **Example Usage**\n`{config.PREFIX}{arg} (.)org.uk`\n\nThe period at the start of the TLD is not required",
         "remove": f"Remove a TLD from the whitetlist \n\n **Example Usage**\n`{config.PREFIX}{arg} (.)org.uk`\n\nThe period at the start of the TLD is not required",
         "whitelist": f"View a list of approved Top Level Domains allowed in the server \n\n **Example Usage**\n`{config.PREFIX}{arg}`",
-        "action": f"Set the bots state when it detects an unaproved TLD \n\n **Parameters** \n `monitor` - Detects and records TLDs to the console and/or status channel to be approved, does **not** delete any messages [DEFAULT]\n\n`remove` - Deletes any messages containing a URL with an aunapproved TLD\n\n **Example Usage**\n`{config.PREFIX}{arg} monitor`"
+        "action": f"Set the bots state when it detects an unapproved TLD \n\n **Parameters** \n `monitor` - Detects and records TLDs to the console and/or status channel to be approved, does **not** delete any messages [DEFAULT]\n\n`remove` - Deletes any messages containing a URL with an aunapproved TLD\n\n **Example Usage**\n`{config.PREFIX}{arg} monitor`"
 
     }
 
@@ -157,7 +157,7 @@ async def updateBlacklist():
     """Updates blacklisted URL list, fetched from github page with updated json file (see blacklist.py)"""
     if (updateBlacklist.current_loop == 0): return # Skip first search, blacklist will have already been fetched with bot startup
     blacklistLen = blacklist.getSize()
-    message = await log.discord(body=":hourglass: Updating blacklist...", channel=bot.get_channel(channel))
+    message = await log.discord(body=":hourglass: Updating blacklist...", channel=channel)
 
     if (blacklist.get()):
         delta = blacklist.getSize() - blacklistLen
