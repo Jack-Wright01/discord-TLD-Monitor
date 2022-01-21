@@ -156,6 +156,11 @@ async def help(ctx, arg=None):
     except:
         await defaultHelp()
     
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+    raise error
 
 @tasks.loop(seconds = config.BLACKLIST_REFRESH_INTERVAL)
 async def updateBlacklist():
