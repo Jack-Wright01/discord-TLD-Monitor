@@ -7,6 +7,7 @@ import whitelist, blacklist, config, log
 import tldextract
 import re
 import datetime
+import uuid
 
 load_dotenv()
 bot = commands.Bot(command_prefix=config.PREFIX, help_command=None)
@@ -65,7 +66,7 @@ async def on_ready():
     
     if (config.STARTUP_MSG == True):
         body = body0 + body1
-        await log.discord(body=body, title="Top Level Domain Monitor", channel=channel)
+        await log.discord(body=body, title="Top Level Domain Monitor", channel=channel, footer="")
 
     updateBlacklist.start()
     updateUptime.start()
@@ -79,19 +80,23 @@ async def on_message(message):
     if (len(urls) > 0):
         for url in urls:
             #Check if blacklisted URL
+            ticket = str(uuid.uuid1())[:8] # Get random num + letters from uuid for case references
             if (blacklist.isBlacklisted(url) == True):
                 await message.delete()
-                return await log.discord(body=f"Sent By: {message.author.mention}\nIn Channel: #{message.channel.mention}", title="Blacklisted URL Removed", color=d.Color.orange(), channel=channel)
+                return await log.discord(body=f"Sent By: {message.author.mention}\nIn Channel: #{message.channel.mention}", title="Blacklisted URL Removed", color=d.Color.orange(), channel=channel, footer=f"Reference ticket {ticket}")
             
             #Check suffix and check with whitelist
             suffix = tldextract.extract(url).suffix
             if (suffix == None): return
             if (whitelist.isWhitelisted(suffix) == False):
+                messageCreation = str(message.created_at)
+                cleanTime = messageCreation[:messageCreation.index('.')] + " UTC"
                 if (config.getMessageAction() == True):
                     await message.delete()
-                    await log.discord(body=f"Deleted message with unwhitelisted TLD `{suffix}` \n\n Author: {message.author.mention}\nChannel: {message.channel.mention}\nTimestamp: {message.created_at}", channel=channel)
+                    await log.discord(body=f"Deleted message with unwhitelisted TLD `.{suffix}` \n\n Author: {message.author.mention}\nChannel: {message.channel.mention}\nURL: `{url}`\nTimestamp: {cleanTime}", channel=channel, footer=f"Reference ticket {ticket}")
+                    await log.discord(body=f"Hello {message.author.mention}! Your message includes a URL that is blocked in this server. If you think this is a mistake, please contact an admin", channel=message.channel, color= d.Color.orange(), footer=f"Reference ticket {ticket}")
                 else:
-                    await log.discord(body=f"Unwhitelisted TLD `{suffix}` detected. Type `{config.PREFIX}add {suffix}` to add to the whitelist \n\n Author: {message.author.mention} - {message.author.id}\nChannel: {message.channel.mention}\nTimestamp: {message.created_at}", channel=channel)
+                    await log.discord(body=f"Unwhitelisted TLD `.{suffix}` detected. Type `{config.PREFIX}add .{suffix}` to add to the whitelist \n\n Author: {message.author.mention}\nChannel: {message.channel.mention}\nURL: `{url}`\nTimestamp: {cleanTime}", channel=channel, footer=f"Reference ticket {ticket}")
 
     await bot.process_commands(message)
 
@@ -125,7 +130,7 @@ async def action(ctx, arg=None):
     
     if (arg == "monitor"):
         await config.setMessageAction(False, ctx.message)
-    elif (arg == "remove"):
+    elif (arg == "remove" or arg == "delete"):
         await config.setMessageAction(True, ctx.message)
 
 @bot.command()

@@ -4,7 +4,8 @@ from discord.ext import commands
 
 async def discord(body=None, title="", footer=config.DEFAULT_FOOTER, channel=config.DEFAULT_CHANNEL, color=d.Color.blue()):
     """Push to discord channel with embeded design"""
-    embed = d.Embed(title=title, description=body, color=color, footer=footer)
+    embed = d.Embed(title=title, description=body, color=color)
+    embed.set_footer(text=footer)
 
     return await channel.send(embed=embed)
 

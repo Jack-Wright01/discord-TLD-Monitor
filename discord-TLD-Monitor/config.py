@@ -18,12 +18,12 @@ async def setMessageAction(bool, message=None):
     global DELETE_MESSAGES
     DELETE_MESSAGES = bool
     if (bool == True):
-        pass
-        #TODO-Add log saying they wont be deleted oops how did i forget this
+        log.terminal(f"Bot set to no longer monitor URLs in this server - by {message.author} ({message.author.id}) on {message.created_at}")
+        await log.discord(body=f"Successfully set the bot to remove URLs in this server, messages with unapproved Top Level Domains **will** be deleted", footer=f"See `{PREFIX}help action` for more info", channel=DEFAULT_CHANNEL, color=d.Color.green())
     else:
+        log.terminal(f"Successfully set the bot to monitor URLs in this server - by {message.author} ({message.author.id}) on {message.created_at}")
         await log.discord(body=f"Successfully set the bot to monitor URLs in this server, messages with unapproved Top Level Domains will **not** be deleted", footer=f"See `{PREFIX}help action` for more info", channel=DEFAULT_CHANNEL, color=d.Color.green())
     
-    log.terminal(f"Successfully set the bot to monitor URLs in this server - by {message.author} ({message.author.id}) on {message.created_at}")
 
 def setDefaultChannel(chan): 
     global DEFAULT_CHANNEL
