@@ -16,9 +16,9 @@ async def edit(messageObj=None, body=None, title="", footer=config.DEFAULT_FOOTE
     embed.set_footer(text=footer)
     return await messageObj.edit(embed=embed)
 
-async def processing(channel):
+async def processing(channel, body="Processing"):
     """Creates and returns embed message of default processing text"""
-    return await discord(body=":hourglass: Processing", title=" ", channel=config.getDefaultChannel())
+    return await discord(body=f":hourglass: {body}", title=" ", footer=" ", channel=channel)
 
 def terminal(body):
     print(body)

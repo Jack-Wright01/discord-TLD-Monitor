@@ -39,10 +39,10 @@ def save():
 
 async def add(val=None, author=None):
     """Add value to whitelist"""
-    if (val == None): return await log.discord(body="No argument given", footer=f"Use `{config.PREFIX}help add` for help", channel=config.getDefaultChannel(), color=d.Color.orange())
-    if (author == None): return await log.discord(body="Cannot parse command without an author being logged, contact bot developer", channel=config.getDefaultChannel(), color=d.Color.light_gray())
+    message = await log.processing(channel=config.getDefaultChannel())
+    if (val == None): return await log.edit(messageObj=message, body="No argument given", footer=f"Use `{config.PREFIX}help add` for help", color=d.Color.orange())
+    if (author == None): return await log.edit(body="Cannot parse command without an author being logged, contact bot developer", color=d.Color.light_gray())
     
-    message = await log.processing(config.getDefaultChannel())
     val = cleanSuffix(val)
     if (isWhitelisted(val) == False):
         whitelist.append(val)
@@ -57,14 +57,14 @@ async def add(val=None, author=None):
 
 async def remove(val=None, author=None):
     """Remove value from whitelist"""
-    if (val == None): return await log.discord(body="No argument given", footer=f"Use `{config.PREFIX}help remove` for help", channel=config.getDefaultChannel(), color=d.Color.orange())
-    if (author == None): return await log.discord(body="Cannot parse command without an author being logged, contact bot developer", channel=config.getDefaultChannel(), color=d.Color.light_gray())
+    message = await log.processing(channel=config.getDefaultChannel())
+    if (val == None): return await log.edit(messageObj=message, body="No argument given", footer=f"Use `{config.PREFIX}help remove` for help", color=d.Color.orange())
+    if (author == None): return await log.edit(messageObj=message, body="Cannot parse command without an author being logged, contact bot developer", color=d.Color.light_gray())
 
-    message = await log.processing(config.getDefaultChannel())
     val = cleanSuffix(val)
     if (isWhitelisted(val) == True):
         whitelist.remove(val)
-        save()
+        save()  
         get()
         await log.edit(messageObj=message, body=f"`{val}` removed successfully", footer="", color=d.Color.green())
         log.terminal(f"`{val}` removed successfully by {author} ({author.id}) on [{message.created_at}]")

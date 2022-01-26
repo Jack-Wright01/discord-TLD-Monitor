@@ -85,6 +85,14 @@ async def on_message(message):
                 await message.delete()
                 return await log.discord(body=f"Sent By: {message.author.mention}\nIn Channel: #{message.channel.mention}", title="Blacklisted URL Removed", color=d.Color.orange(), channel=channel, footer=f"Reference ticket {ticket}")
             
+            # Nitro && URL Potential scam check
+            msgCtx = message.content.lower()
+            if ((("acer" in msgCtx or "laptop" in msgCtx) == False) and ("nitro" in msgCtx)):
+                if (config.getMessageAction() == True):
+                    await message.delete()
+                    await log.discord(body=f"Sent By: {message.author.mention} - ({message.author.id})\nIn Channel: #{message.channel.mention}\n\nMessage: `{msgCtx}`", title="Potential Nitro scam flagged", color=d.Color.orange(), channel=channel, footer=f"Reference ticket {ticket}")
+                    return await log.discord(body=f"Hello {message.author.mention}! Your message includes a URL that is blocked in this server. If you think this is a mistake, please contact an admin", channel=message.channel, color= d.Color.orange(), footer=f"Reference ticket {ticket}")
+            
             #Check suffix and check with whitelist
             suffix = tldextract.extract(url).suffix
             if (suffix == None): return
@@ -93,7 +101,7 @@ async def on_message(message):
                 cleanTime = messageCreation[:messageCreation.index('.')] + " UTC"
                 if (config.getMessageAction() == True):
                     await message.delete()
-                    await log.discord(body=f"Deleted message with unwhitelisted TLD `.{suffix}` \n\n Author: {message.author.mention}\nChannel: {message.channel.mention}\nURL: `{url}`\nTimestamp: {cleanTime}", channel=channel, footer=f"Reference ticket {ticket}")
+                    await log.discord(body=f"Deleted message with unwhitelisted TLD `.{suffix}` \n\n Author: {message.author.mention} - ({message.author.id})\nChannel: {message.channel.mention}\nURL: `{url}`\nTimestamp: {cleanTime}", channel=channel, footer=f"Reference ticket {ticket}")
                     await log.discord(body=f"Hello {message.author.mention}! Your message includes a URL that is blocked in this server. If you think this is a mistake, please contact an admin", channel=message.channel, color= d.Color.orange(), footer=f"Reference ticket {ticket}")
                 else:
                     await log.discord(body=f"Unwhitelisted TLD `.{suffix}` detected. Type `{config.PREFIX}add .{suffix}` to add to the whitelist \n\n Author: {message.author.mention}\nChannel: {message.channel.mention}\nURL: `{url}`\nTimestamp: {cleanTime}", channel=channel, footer=f"Reference ticket {ticket}")
@@ -167,15 +175,18 @@ async def updateBlacklist():
     """Updates blacklisted URL list, fetched from github page with updated json file (see blacklist.py)"""
     if (updateBlacklist.current_loop == 0): return # Skip first search, blacklist will have already been fetched with bot startup
     blacklistLen = blacklist.getSize()
-    message = await log.discord(body=":hourglass: Updating blacklist...", channel=channel)
-
-    if (blacklist.get()):
-        delta = blacklist.getSize() - blacklistLen
-        symbol = "+"
-        if (delta < 0): symbol = "-"
-        await log.edit(message, body=f"Blocked URL library updated ({symbol}{delta})", color=d.Color.green())
-    else:
-        await log.edit(message, body="Failed to find blocked URL library", color=d.Color.orange())
+    
+    try:
+        if (blacklist.get()):
+            delta = blacklist.getSize() - blacklistLen
+            if (delta == 0): return # Don't send update
+            symbol = "+"
+            if (delta < 0): symbol = "-"
+            await log.discord(channel=channel, body=f"Blocked URL library updated ({symbol}{delta})", color=d.Color.green())
+        else:
+            await log.discord(channel=channel, body="Failed to find blocked URL library", color=d.Color.orange())
+    except:
+        await log.discord(channel=channel, body="Failed to find blocked URL library", color=d.Color.orange())
 
 @tasks.loop(seconds = randint(20, 180))
 async def updateUptime():
